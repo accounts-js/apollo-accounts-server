@@ -18,9 +18,15 @@ describe('apolloAccounts', () => {
     use() {
 
     },
+    addStrategy() {
+
+    },
   };
   const accounts = {
     verify() {
+
+    },
+    addStrategy() {
 
     },
   };
@@ -51,6 +57,16 @@ describe('apolloAccounts', () => {
       { name: 'name1', strategy }, { name: 'name2', strategy },
     ]);
     expect(passport.use).to.have.been.called.twice();
+  });
+  it('calls accounts.addStrategy', () => {
+    accounts.addStrategy = chai.spy(accounts.addStrategy);
+    apolloAccounts(passport, accounts, { name: 'name', strategy });
+    expect(accounts.addStrategy).to.have.been.called.with('name');
+  });
+  it('calls passport.use', () => {
+    passport.use = chai.spy(passport.use);
+    apolloAccounts(passport, accounts, { name: 'name', strategy });
+    expect(passport.use).to.have.been.called.with('name');
   });
 });
 

@@ -47,6 +47,7 @@ export default (passport, accounts, strategies) => {
     if (isEmpty(strategy) && !isObject(strategy)) {
       throw new Error('Expects a passport strategy');
     }
+    accounts.addStrategy(name, { verify, findOrCreate });
     passport.use(name, new strategy(options), accounts.verify); // eslint-disable-line new-cap
   });
   passport.serializeUser(accounts.serializeUser);
