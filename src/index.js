@@ -19,22 +19,7 @@ export class Accounts {
    * verify callback.
    * @return Promise
    */
-  verify(...args) {
-    const done = args.pop();
-    return this.authenticate(...args).then(value => {
-      const { user } = value;
-      return done(null, user);
-    }, reason => {
-      const { err, user } = reason;
-      const { notFound, wrongCredentials } = user;
-      let res;
-      if (err) {
-        res = done(err);
-      } else if (notFound || wrongCredentials) {
-        res = done(null, false);
-      }
-      return res;
-    });
+  verify(done, name, args) {
   }
 }
 
@@ -54,7 +39,9 @@ export default (passport, accounts, strategies) => {
       throw new Error('Expects a passport strategy');
     }
     accounts.addStrategy(name, { verify, find, create });
-    passport.use(name, new strategy(options), accounts.verify); // eslint-disable-line new-cap
+    passport.use(name, new strategy(options), // eslint-disable-line new-cap
+      (...args) => accounts.verify(args.pop(), name, ...args)
+    );
   });
   passport.serializeUser(accounts.serializeUser);
   passport.deserializeUser(accounts.deserializeUser);

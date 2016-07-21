@@ -84,26 +84,11 @@ describe('Accounts', () => {
     accounts.deserializeUser(user, callback);
     expect(callback).to.have.been.called.with(user);
   });
-  describe('verify', () => {
-    it('verifies authentication is successful', (done) => {
-      const user = {};
-      accounts.authenticate = () => {
-        return new Promise((resolve) => resolve(user));
-      };
-      const callback = chai.spy((err, user) => {
-        console.log(user);
-        expect(callback).to.have.been.called.with(user);
-        done();
-      });
-      const verify = accounts.verify('username', 'password', callback);
-    });
-
-    it('addStrategy', () => {
-      accounts.addStrategy('name', { verify: 'verify', find: 'find', create: 'create' });
-      expect(accounts.strategies.name).to.exist;
-      expect(accounts.strategies.name)
-        .to.deep.equal({ verify: 'verify', find: 'find', create: 'create' });
-    });
+  it('addStrategy', () => {
+    accounts.addStrategy('name', { verify: 'verify', find: 'find', create: 'create' });
+    expect(accounts.strategies.name).to.exist;
+    expect(accounts.strategies.name)
+      .to.deep.equal({ verify: 'verify', find: 'find', create: 'create' });
   });
   /*
   describe('verify', () => {
