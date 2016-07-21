@@ -97,6 +97,13 @@ describe('Accounts', () => {
       });
       const verify = accounts.verify('username', 'password', callback);
     });
+
+    it('addStrategy', () => {
+      accounts.addStrategy('name', { verify: 'verify', find: 'find', create: 'create' });
+      expect(accounts.strategies.name).to.exist;
+      expect(accounts.strategies.name)
+        .to.deep.equal({ verify: 'verify', find: 'find', create: 'create' });
+    });
   });
   /*
   describe('verify', () => {
