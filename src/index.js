@@ -19,10 +19,10 @@ export class Accounts {
     console.log(name);
     console.log(args);
   }
-  registerUser(args) {
+  registerUser(args, service) {
     let user = this.findUser(args);
     if (!user) {
-      user = this.createUser(args);
+      user = this.createUser(args, service);
     }
     return user;
   }
