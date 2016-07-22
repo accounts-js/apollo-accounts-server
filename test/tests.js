@@ -39,16 +39,13 @@ describe('apolloAccounts', () => {
   it('expects accounts', () => {
     expect(() => apolloAccounts(passport).to.throw('Expects an Accounts instance'));
   });
-  it('expects a strategy', () => {
-    expect(() => apolloAccounts(passport, accounts))
-      .to.throw('Expects a passport strategy');
-  });
+
   it('can accept an array of strategies', () => {
     passport.use = chai.spy(passport.use);
     apolloAccounts(passport, accounts, [
       { strategy }, { strategy },
     ]);
-    expect(passport.use).to.have.been.called.twice();
+    expect(passport.use).to.have.been.called.min(2);
   });
   it('calls accounts.addStrategy', () => {
     accounts.addStrategy = chai.spy(accounts.addStrategy);
@@ -98,21 +95,21 @@ describe('Accounts', () => {
       expect(accounts.createUser).to.not.have.been.called({ username: 'test', password: '123456' });
     });
   });
-  /*
-  describe('verify', () => {
-    const username = 'user1';
-    const password = 'password1';
-    it('verifies authentication is successful', () => {
-      const user = {};
-      accounts.authenticate = (username, password) => {
-        return new Promise(resolve => resolve('boo'));
-      };
-      const callback = chai.spy((err, user) => null);
-      const verify = accounts.verify(username, password, callback);
-      console.log(verify);
-      console.log(callback);
-      expect(callback).to.have.been.called();
-      return verify;
+  describe('hashing', () => {
+    const password = '123456';
+    it('can encrypt and decrypt a correct password', () => {
+      const hash = accounts.hashPassword(password);
+      // eslint-disable-next-line no-unused-expressions
+      expect(hash).to.be.okay;
+      // eslint-disable-next-line  no-unused-expressions
+      expect(accounts.comparePassword(password, hash)).to.be.true;
     });
-  });*/
+    it('can detect wrong password', () => {
+      const hash = accounts.hashPassword(password);
+      // eslint-disable-next-line no-unused-expressions
+      expect(hash).to.be.okay;
+      // eslint-disable-next-line  no-unused-expressions
+      expect(accounts.comparePassword('wrong password', hash)).to.be.false;
+    });
+  });
 });

@@ -15,7 +15,9 @@
   "license": "MIT",
   "dependencies": {
     "babel-polyfill": "^6.9.0",
-    "lodash": "^4.13.1"
+    "bcrypt": "^0.8.7",
+    "lodash": "^4.13.1",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "babel": "^6.5.2",

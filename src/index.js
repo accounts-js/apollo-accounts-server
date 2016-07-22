@@ -1,9 +1,18 @@
 import { isEmpty, isString, isObject, isArray, trim } from 'lodash';
+import { Strategy as LocalStrategy } from 'passport-local';
+import bcrypt from 'bcrypt';
+
+const SALT_ROUNDS = 10;
 
 export class Accounts {
   constructor() {
     this.strategies = {};
-    this.defaultStrategy = {};
+    /*
+    this.defaultStrategy = new LocalStrategy((username, password, done) => {
+      Promise.resolve()
+        .then(() => this.findUser({ username }));
+    });
+    */
   }
   addStrategy(name, args) {
     this.strategies[name] = args;
@@ -14,15 +23,21 @@ export class Accounts {
   deserializeUser(object, callback) {
     return callback(null, object);
   }
+  hashPassword(password) {
+    return bcrypt.hashSync(password, SALT_ROUNDS);
+  }
+  comparePassword(password, hash) {
+    return bcrypt.compareSync(password, hash);
+  }
   verify(done, name, args) {
     console.log(done);
     console.log(name);
     console.log(args);
   }
-  registerUser(args, service) {
+  registerUser(args) {
     let user = this.findUser(args);
     if (!user) {
-      user = this.createUser(args, service);
+      user = this.createUser(args);
     }
     return user;
   }
@@ -35,10 +50,8 @@ export default (passport, accounts, strategies = []) => {
   if (!accounts) {
     throw new Error('Expects an Accounts instance');
   }
+  passport.use(accounts.defaultStrategy);
   const newStrategies = isArray(strategies) ? strategies : [strategies];
-  if (strategies.length === 0) {
-    throw new Error('Expects a passport strategy');
-  }
   newStrategies.forEach(({ strategy, options = {}, verify, find, create }) => {
     if (isEmpty(strategy) && !isObject(strategy)) {
       throw new Error('Expects a passport strategy');
