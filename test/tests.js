@@ -22,17 +22,11 @@ describe('apolloAccounts', () => {
 
     },
   };
-  const accounts = {
-    verify() {
-
-    },
-    addStrategy() {
-
-    },
-  };
   const strategy = class {
 
   };
+  const accounts = new Accounts();
+
   it('expects passport', () => {
     expect(() => apolloAccounts()).to.throw('Expects a passport instance');
   });
