@@ -39,34 +39,26 @@ describe('apolloAccounts', () => {
   it('expects accounts', () => {
     expect(() => apolloAccounts(passport).to.throw('Expects an Accounts instance'));
   });
-  it('expects a strategy name', () => {
-    expect(() => apolloAccounts(passport, accounts, { strategy: {} }))
-      .to.throw('Expects strategy to have a name');
-    expect(() => apolloAccounts(passport, accounts, { name: '', strategy }))
-      .to.throw('Expects strategy to have a name');
-    expect(() => apolloAccounts(passport, accounts, { name: ' ', strategy }))
-      .to.throw('Expects strategy to have a name');
-  });
   it('expects a strategy', () => {
-    expect(() => apolloAccounts(passport, accounts, { name: 'name' }))
+    expect(() => apolloAccounts(passport, accounts))
       .to.throw('Expects a passport strategy');
   });
   it('can accept an array of strategies', () => {
     passport.use = chai.spy(passport.use);
     apolloAccounts(passport, accounts, [
-      { name: 'name1', strategy }, { name: 'name2', strategy },
+      { strategy }, { strategy },
     ]);
     expect(passport.use).to.have.been.called.twice();
   });
   it('calls accounts.addStrategy', () => {
     accounts.addStrategy = chai.spy(accounts.addStrategy);
-    apolloAccounts(passport, accounts, { name: 'name', strategy });
-    expect(accounts.addStrategy).to.have.been.called.with('name');
+    apolloAccounts(passport, accounts, { strategy });
+    expect(accounts.addStrategy).to.have.been.called();
   });
   it('calls passport.use', () => {
     passport.use = chai.spy(passport.use);
-    apolloAccounts(passport, accounts, { name: 'name', strategy });
-    expect(passport.use).to.have.been.called.with('name');
+    apolloAccounts(passport, accounts, { strategy });
+    expect(passport.use).to.have.been.called();
   });
 });
 
