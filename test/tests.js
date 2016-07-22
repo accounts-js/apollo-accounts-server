@@ -82,6 +82,22 @@ describe('Accounts', () => {
     expect(accounts.strategies.name)
       .to.deep.equal({ verify: 'verify', find: 'find', create: 'create' });
   });
+  describe('registerUser', () => {
+    it('finds a user', () => {
+      accounts.findUser = chai.spy((args) => args);
+      accounts.createUser = chai.spy((args) => args);
+      accounts.registerUser({ username: 'test', password: '123456' });
+      expect(accounts.findUser).to.have.been.called.with({ username: 'test', password: '123456' });
+      expect(accounts.createUser).to.not.have.been.called();
+    });
+    it('creates a user if they are not found', () => {
+      accounts.findUser = chai.spy(() => null);
+      accounts.createUser = chai.spy((args) => args);
+      accounts.registerUser({ username: 'test', password: '123456' });
+      expect(accounts.findUser).to.have.been.called.with({ username: 'test', password: '123456' });
+      expect(accounts.createUser).to.not.have.been.called({ username: 'test', password: '123456' });
+    });
+  });
   /*
   describe('verify', () => {
     const username = 'user1';

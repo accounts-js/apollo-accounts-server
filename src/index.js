@@ -15,6 +15,16 @@ export class Accounts {
     return callback(null, object);
   }
   verify(done, name, args) {
+    console.log(done);
+    console.log(name);
+    console.log(args);
+  }
+  registerUser(args) {
+    let user = this.findUser(args);
+    if (!user) {
+      user = this.createUser(args);
+    }
+    return user;
   }
 }
 
@@ -30,11 +40,6 @@ export default (passport, accounts, strategies = []) => {
     throw new Error('Expects a passport strategy');
   }
   newStrategies.forEach(({ strategy, options = {}, verify, find, create }) => {
-    /*
-    if (isEmpty(name) || isString(name) && trim(name).length === 0) {
-      throw new Error('Expects strategy to have a name');
-    }
-    */
     if (isEmpty(strategy) && !isObject(strategy)) {
       throw new Error('Expects a passport strategy');
     }
