@@ -69,6 +69,7 @@ describe('Accounts', () => {
   });
   it('addStrategy', () => {
     accounts.addStrategy('name', { verify: 'verify', find: 'find', create: 'create' });
+    // eslint-disable-next-line no-unused-expressions
     expect(accounts.strategies.name).to.exist;
     expect(accounts.strategies.name)
       .to.deep.equal({ verify: 'verify', find: 'find', create: 'create' });

@@ -1,68 +1,36 @@
-import { isEmpty, isString, isObject, isArray, trim } from 'lodash';
-import { Strategy as LocalStrategy } from 'passport-local';
-import bcrypt from 'bcrypt';
+// @flow
+import { isEmpty, isObject } from 'lodash';
 
-const SALT_ROUNDS = 10;
+import Accounts from './Accounts';
 
-export class Accounts {
-  constructor() {
-    this.strategies = {};
-    /*
-    this.defaultStrategy = new LocalStrategy((username, password, done) => {
-      Promise.resolve()
-        .then(() => this.findUser({ username }));
-    });
-    */
-  }
-  addStrategy(name, args) {
-    this.strategies[name] = args;
-  }
-  serializeUser(user, callback) {
-    return callback(null, user);
-  }
-  deserializeUser(object, callback) {
-    return callback(null, object);
-  }
-  hashPassword(password) {
-    return bcrypt.hashSync(password, SALT_ROUNDS);
-  }
-  comparePassword(password, hash) {
-    return bcrypt.compareSync(password, hash);
-  }
-  verify(done, name, args) {
-    console.log(done);
-    console.log(name);
-    console.log(args);
-  }
-  registerUser(args) {
-    let user = this.findUser(args);
-    if (!user) {
-      user = this.createUser(args);
-    }
-    return user;
-  }
+type Strategy = {
+  strategy: any,
+  name: string,
+  verify: any,
+  options: ?any
 }
 
-export default (passport, accounts, strategies = []) => {
+// TODO Passport doesn't have Flow definitions :'(
+export default (passport: any, accounts: Accounts, strategies: [Strategy]) => {
   if (!passport) {
     throw new Error('Expects a passport instance');
   }
-  if (!accounts) {
+  if (!(accounts instanceof Accounts)) {
     throw new Error('Expects an Accounts instance');
   }
-  passport.use(accounts.defaultStrategy);
-  const newStrategies = isArray(strategies) ? strategies : [strategies];
-  newStrategies.forEach(({ strategy, options = {}, verify, find, create }) => {
+  // passport.use(accounts.defaultStrategy);
+  // const newStrategies = isArray(strategies) ? strategies : [strategies];
+  strategies.forEach(value => {
+    const { strategy, name, verify, options } = value;
     if (isEmpty(strategy) && !isObject(strategy)) {
       throw new Error('Expects a passport strategy');
     }
-    const strategyInstance = new strategy(options, // eslint-disable-line new-cap
+    // eslint-disable-next-line new-cap
+    const strategyInstance = new strategy(options || {},
       (...args) => accounts.verify(args.pop(), name, ...args)
     );
-    accounts.addStrategy(strategyInstance.name, { verify, find, create });
+    accounts.addStrategy(strategyInstance.options);
     passport.use(strategyInstance);
   });
-  passport.serializeUser(accounts.serializeUser);
-  passport.deserializeUser(accounts.deserializeUser);
   return passport;
 };
