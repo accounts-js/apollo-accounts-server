@@ -7,7 +7,7 @@
     "lint": "eslint src/ test/",
     "pretest": "npm run lint --silent",
     "test": "npm run testonly",
-    "testonly": "mocha test/index.js",
+    "testonly": "mocha --full-trace test/index.js",
     "build": "babel ./src --ignore test --out-dir ./dist",
     "prepublish": "npm run build"
   },
