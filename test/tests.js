@@ -1,11 +1,11 @@
+/* eslint-disable no-unused-expressions */
+
 import chai, { expect } from 'chai';
 import spies from 'chai-spies';
-import chaiAsPromised from 'chai-as-promised';
 
 import apolloAccounts, { Accounts as AccountsBase } from '../src/';
 
 chai.use(spies);
-chai.use(chaiAsPromised);
 
 class Accounts extends AccountsBase {
   // eslint-disable-next-line no-useless-constructor
@@ -116,6 +116,17 @@ describe('Accounts', () => {
       expect(hash).to.be.okay;
       // eslint-disable-next-line  no-unused-expressions
       expect(accounts.comparePassword('wrong password', hash)).to.be.false;
+    });
+  });
+  it('strategyExtractIdentifiers', () => {
+    const profile = {
+      id: '123',
+      displayName: 'name',
+      otherField: 'other',
+    };
+    expect(accounts.strategyExtractIdentifiers(profile)).to.deep.equal({
+      identifier: '123',
+      username: 'name',
     });
   });
 });

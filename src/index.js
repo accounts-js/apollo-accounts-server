@@ -97,7 +97,7 @@ export class Accounts {
       done(null, user);
     }
   }
-  strategyExtractIdentifiers({ profile }) {
+  strategyExtractIdentifiers(profile) {
     // TODO This may not be reliable/accurate for all services. http://passportjs.org/docs/profile
     // Passport normalizes the response from the service to a standard format allowing us to
     // determine the id and username. Typically this is named `profile` in the response arguments.
