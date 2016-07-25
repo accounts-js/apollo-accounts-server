@@ -85,7 +85,7 @@ export class Accounts {
       // We will create a new record in the `accounts` table for them and associate this service
       // with their account.
       if (!userId) {
-        userId = this.createUserAndService(service, identifier, username, profile);
+        userId = this.createUser({ service, identifier, username, profile });
       }
       // Now that we have an id, let's find the user.
       // But wait...why didn't we just return a user object from one of the above calls?
@@ -102,13 +102,6 @@ export class Accounts {
     // Passport normalizes the response from the service to a standard format allowing us to
     // determine the id and username. Typically this is named `profile` in the response arguments.
     return { identifier: profile.id, username: profile.displayName };
-  }
-  createUserAndService(service, identifier, username, profile) {
-    // Create a user
-    const userId = this.createUser(username);
-    // Create a service and associate it with the user id.
-    this.addService(userId, service, identifier, profile);
-    return userId;
   }
 }
 
