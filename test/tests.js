@@ -78,7 +78,6 @@ describe('Accounts', () => {
   */
   it('addStrategy', () => {
     accounts.addStrategy('name', { });
-    // eslint-disable-next-line no-unused-expressions
     expect(accounts.strategies.name).to.exist;
     expect(accounts.strategies.name)
       .to.deep.equal({ });
@@ -105,16 +104,12 @@ describe('Accounts', () => {
     const password = '123456';
     it('can encrypt and decrypt a correct password', () => {
       const hash = accounts.hashPassword(password);
-      // eslint-disable-next-line no-unused-expressions
       expect(hash).to.be.okay;
-      // eslint-disable-next-line  no-unused-expressions
       expect(accounts.comparePassword(password, hash)).to.be.true;
     });
     it('can detect wrong password', () => {
       const hash = accounts.hashPassword(password);
-      // eslint-disable-next-line no-unused-expressions
       expect(hash).to.be.okay;
-      // eslint-disable-next-line  no-unused-expressions
       expect(accounts.comparePassword('wrong password', hash)).to.be.false;
     });
   });
