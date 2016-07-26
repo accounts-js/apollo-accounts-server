@@ -19,6 +19,15 @@ class Accounts extends AccountsBase {
   findIdByService() {
 
   }
+  findIdByEmail() {
+
+  }
+  findIdByUsername() {
+
+  }
+  findService() {
+
+  }
   createUser() {
 
   }
@@ -138,6 +147,81 @@ describe('Accounts', () => {
     let accounts;
     beforeEach(() => {
       accounts = new Accounts();
+    });
+    describe('defaultStrategy', () => {
+      beforeEach(() => {
+        accounts.defaultStrategy.authenticate = chai.spy(accounts.defaultStrategy.authenticate);
+      });
+      it('calls findIdByEmail if provided an email', (done) => {
+        accounts.findIdByEmail = chai.spy(email => {
+          expect(email).to.be.equal('user@user.com');
+          done();
+          return '1';
+        });
+        accounts.defaultStrategy.authenticate(() => null, 'local', 'user@user.com', 'password');
+        expect(accounts.findIdByEmail).to.have.been.called;
+      });
+      it('calls findIdByUsername if provided a username', (done) => {
+        accounts.findIdByUsername = chai.spy(username => {
+          expect(username).to.be.equal('user');
+          done();
+          return '2';
+        });
+        accounts.defaultStrategy.authenticate(() => null, 'local', 'user', 'password');
+        expect(accounts.findIdByUsername).to.have.been.called;
+      });
+      it('calls findService', (done) => {
+        accounts.findService = chai.spy((userId) => {
+          expect(userId).to.equal('123');
+          done();
+          return Promise.resolve({
+            profile: {
+              hash: 'hash',
+            },
+          });
+        });
+        accounts.findIdByUsername = () => '123';
+        accounts.defaultStrategy.authenticate(() => null, 'local', 'user', 'password');
+        expect(accounts.findService).to.have.been.called;
+      });
+      it('error on wrong password', (done) => {
+        accounts.findIdByUsername = () => '123';
+        accounts.findService = () => Promise.resolve({
+          profile: {
+            hash: accounts.hashPassword('password'),
+          },
+        });
+        const passportDone = chai.spy((err, user) => {
+          expect(err).to.be.equal('Incorrect password');
+          expect(user).to.be.equal(null);
+          done();
+        });
+        accounts.defaultStrategy.authenticate(passportDone, 'local', 'user', 'wrong password');
+        expect(passportDone).to.have.been.called;
+      });
+      it('finds user on correct password', (done) => {
+        accounts.findIdByUsername = () => '123';
+        accounts.findService = () => Promise.resolve({
+          profile: {
+            hash: accounts.hashPassword('password'),
+          },
+        });
+        accounts.findUser = chai.spy(() => Promise.resolve({
+          id: '123',
+          username: 'user',
+        }));
+        const passportDone = chai.spy((err, user) => {
+          expect(err).to.be.equal(null);
+          expect(user).to.be.eql({
+            id: '123',
+            username: 'user',
+          });
+          done();
+        });
+        accounts.defaultStrategy.authenticate(passportDone, 'local', 'user', 'password');
+        expect(passportDone).to.have.been.called;
+        expect(accounts.findUser).to.have.been.called;
+      });
     });
     it('calls custom authenticate function if provided', () => {
       const authenticate = chai.spy((done, service, args) => {

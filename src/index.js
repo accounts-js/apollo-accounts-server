@@ -20,35 +20,43 @@ export class Accounts {
     this.strategies = {};
     // The default strategy differs from other strategies used because its implementation requires
     // password hashing and optionally storing en email.
-    this.defaultStrategy = { strategy: LocalStrategy, authenticate: (done, name, args) => {
-      const { user, password } = args;
-      // TODO Validate user and password
-      // First we need to determine if the user exists in the database.
-      let userId;
-      // Check if `user` is an email or a username to query accordingly
-      if (isEmail(user)) {
-        userId = this.findIdByEmail(user);
-      } else {
-        userId = this.findIdByUsername(user);
-      }
-      // If no user id was found, this user does not exist.
-      if (!userId) {
-        // TODO Error user does not exist
-      } else {
-        // The user exists, check if the provided password matches.
-        // It just so happens that the unique identifier of the local service is the user's id
-        // that's why it is passed in twice.
-        const service = this.findService(userId, userId);
-        const { profile } = service;
-        // Check if password matches
-        if (!this.comparePassword(password, profile.hash)) {
-          // TODO Incorrect password
+    this.defaultStrategy = { strategy: LocalStrategy,
+      authenticate: (done, name, user, password) => {
+        // TODO Validate user and password
+        let promise = Promise.resolve();
+        let userId;
+        // First we need to determine if the user exists in the database.
+        // Check if `user` is an email or a username to query accordingly
+        if (isEmail(user)) {
+          promise = promise.then(() => this.findIdByEmail(user));
         } else {
-          const foundUser = this.findUser(userId);
-          done(null, foundUser);
+          promise = promise.then(() => this.findIdByUsername(user));
         }
-      }
-    },
+        // If no user id was found, this user does not exist.
+        promise
+          .then(id => {
+            if (!id) {
+              done('User does not exist', null);
+            }
+            userId = id;
+            return userId;
+          })
+          // The user exists, check if the provided password matches.
+          // It just so happens that the unique identifier of the local service is the user's id
+          // that's why it is passed in twice.
+          .then((id) => this.findService(id, id))
+          .then(service => {
+            const { profile } = service;
+            // Check if password matches
+            if (!this.comparePassword(password, profile.hash)) {
+              done('Incorrect password', null);
+            } else {
+              this.findUser(userId).then((foundUser) => {
+                done(null, foundUser);
+              });
+            }
+          });
+      },
   };
   }
   addStrategy(name, strategy) {
