@@ -211,6 +211,39 @@ describe('Accounts', () => {
       accounts.authenticate(() => null, 'thirdParty', 'foo', profile);
       expect(extract).to.have.been.called;
     });
+    it('uses default strategyProfile function', () => {
+      const strategyProfile = chai.spy(accounts.strategyProfile);
+      accounts.strategies.thirdParty = {
+
+      };
+      const profile = {
+        id: '123',
+        displayName: 'abc',
+      };
+      accounts.authenticate(() => null, 'thirdParty', profile);
+      expect(strategyProfile).to.have.been.called;
+    });
+    it('uses custom profile function', () => {
+      const profileFunction = chai.spy((profile) => {
+        expect(profile).to.be.eql({
+          id: '123',
+          displayName: 'abc',
+        });
+        return {
+          identifier: '123',
+          username: 'abc',
+        };
+      });
+      accounts.strategies.thirdParty = {
+        profile: profileFunction,
+      };
+      const profile = {
+        id: '123',
+        displayName: 'abc',
+      };
+      accounts.authenticate(() => null, 'thirdParty', 'foo', profile);
+      expect(profileFunction).to.have.been.called;
+    });
     it('calls findIdByService', () => {
       const profile = {
         id: '123',

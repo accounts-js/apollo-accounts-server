@@ -1,4 +1,4 @@
-import { isEmpty, isObject, isArray, isFunction } from 'lodash';
+import { isEmpty, isObject, isArray, isFunction, pick } from 'lodash';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcryptjs';
 
@@ -83,7 +83,9 @@ export class Accounts {
       // Looks like we're sticking with the default authentication logic.
       // Extract a unique identifier to find the user from the service's response.
       // If the developer provides an `extract` callback, we use that instead of our default.
-      const profile = args[args.length - 1];
+      let profile = args[args.length - 1];
+      profile = isFunction(strategy.profile) ? strategy.profile(profile)
+        : this.strategyProfile(profile);
       const identifiers = isFunction(strategy.extract) ?
         strategy.extract(...args) : this.strategyExtractIdentifiers(profile);
       const { identifier, username } = identifiers;
@@ -101,16 +103,24 @@ export class Accounts {
         // The fields a user carries are defined by the app's business rules. The requirements may
         // be different from app to app. For example if the user has roles associated with them or
         // carries profile photos or a bio. Let the developer handle how the user is fetched.
-        .then(userId => this.findById(userId))
+        .then(userId => this.findForSession(userId, identifier))
         // Last step, let passport know the user identified succesfully and provide the user object
-        .then(user => done(null, user));
+        .then(user => {
+          done(null, user);
+        });
     }
+  }
+  strategyProfile(profile) {
+    return pick(profile, ['provider', 'id', 'displayName', 'name', 'emails', 'photos']);
   }
   strategyExtractIdentifiers(profile) {
     // TODO This may not be reliable/accurate for all services. http://passportjs.org/docs/profile
     // Passport normalizes the response from the service to a standard format allowing us to
     // determine the id and username. Typically this is named `profile` in the response arguments.
     return { identifier: profile.id, username: profile.displayName };
+  }
+  transformProfile(profile) {
+    return profile;
   }
   registerUser({ username, email, password }) {
     const hash = this.hashPassword(password);
@@ -129,16 +139,21 @@ export default (passport, accounts, strategies = []) => {
 
   const newStrategies = isArray(strategies) ? strategies : [strategies];
 
-  newStrategies.push(accounts.defaultStrategy);
+  // accounts.addStrategy('local', accounts.defaultStrategy);
 
-  newStrategies.forEach(({ strategy, options = {}, extract, authenticate }) => {
+  newStrategies.forEach(({ strategy, options = {}, name, extract, profile, authenticate }) => {
     if (isEmpty(strategy) && !isObject(strategy)) {
       throw new Error('Expects a passport strategy');
     }
     const strategyInstance = new strategy(options, // eslint-disable-line new-cap
-      (...args) => accounts.authenticate(args.pop(), name, ...args)
+      (...args) => {
+        // console.log(args);
+        // const done = args.pop();
+        accounts.authenticate(args.pop(), name, ...args);
+        // done(null, args.pop());
+      }
     );
-    accounts.addStrategy(strategyInstance.name, { extract, authenticate });
+    accounts.addStrategy(name, { extract, profile, authenticate });
     passport.use(strategyInstance);
   });
   // TODO Only apply if functions are defined
