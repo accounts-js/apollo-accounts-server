@@ -83,8 +83,8 @@ export class Accounts {
       // Looks like we're sticking with the default authentication logic.
       // The profile returned by the 3rd party can have a bunch of fields we don't need
       // if a `profile` callback is provided we use it, otherwise use passport's default profile.
-      let profile = args[args.length - 1];
-      profile = isFunction(strategy.profile) ? strategy.profile(profile)
+      const profile = args[args.length - 1];
+      const transformedProfile = isFunction(strategy.profile) ? strategy.profile(profile)
         : this.strategyProfile(profile);
       // Extract a unique identifier to find the user from the service's response.
       // If the developer provides an `extract` callback, we use that instead of our default.
@@ -99,7 +99,9 @@ export class Accounts {
         // If a user is not found that means this is their first time logging in with this service.
         // We will create a new record in the `accounts` table for them and associate this service
         // with their account.
-        .then(userId => userId || this.createUser({ service, identifier, username, profile }))
+        .then(userId => userId || this.createUser({
+          service, identifier, username, profile: transformedProfile,
+        }))
         // Now that we have an id, let's find the user.
         // But wait...why didn't we just return a user object from one of the above calls?
         // The fields a user carries are defined by the app's business rules. The requirements may
