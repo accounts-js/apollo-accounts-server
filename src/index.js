@@ -1,6 +1,6 @@
 import { isEmpty, isObject, isArray, isFunction } from 'lodash';
 import { Strategy as LocalStrategy } from 'passport-local';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const SALT_ROUNDS = 10;
 

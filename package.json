@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-polyfill": "^6.9.0",
-    "bcrypt": "^0.8.7",
+    "bcryptjs": "^2.3.0",
     "lodash": "^4.13.1",
     "passport-local": "^1.0.0"
   },
