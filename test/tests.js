@@ -9,49 +9,18 @@ import apolloAccounts, { Accounts as AccountsBase } from '../src/';
 chai.use(spies);
 
 class Accounts extends AccountsBase {
-  // eslint-disable-next-line no-useless-constructor
-  constructor() {
-    super();
-  }
-  findById() {
-
-  }
-  findIdByService() {
-
-  }
-  findIdByEmail() {
-
-  }
-  findIdByUsername() {
-
-  }
-  findService() {
-
-  }
-  createUser() {
-
-  }
 }
 
+const passport = {
+
+};
+
 describe('apolloAccounts', () => {
-  const passport = {
-    serializeUser() {
-
-    },
-    deserializeUser() {
-
-    },
-    use() {
-
-    },
-    addStrategy() {
-
-    },
-  };
-  const strategy = class {
-
-  };
-  const accounts = new Accounts();
+  let accounts;
+  const strategy = class {};
+  beforeEach(() => {
+    accounts = new Accounts();
+  });
 
   it('expects passport', () => {
     expect(() => apolloAccounts()).to.throw('Expects a passport instance');
@@ -80,45 +49,16 @@ describe('apolloAccounts', () => {
 });
 
 describe('Accounts', () => {
-  const accounts = new Accounts();
-  /*
-  it('provides a default serializeUser function', () => {
-    const callback = chai.spy((err, object) => null); // eslint-disable-line no-unused-vars
-    const user = {};
-    accounts.serializeUser(user, callback);
-    expect(callback).to.have.been.called.with(user);
+  let accounts;
+  beforeEach(() => {
+    accounts = new Accounts();
   });
-  it('provides a default deserializeUser function', () => {
-    const callback = chai.spy((err, object) => null); // eslint-disable-line no-unused-vars
-    const user = {};
-    accounts.deserializeUser(user, callback);
-    expect(callback).to.have.been.called.with(user);
-  });
-  */
   it('addStrategy', () => {
     accounts.addStrategy('name', { });
     expect(accounts.strategies.name).to.exist;
     expect(accounts.strategies.name)
       .to.deep.equal({ });
   });
-  /*
-  describe('registerUser', () => {
-    it('finds a user', () => {
-      accounts.findUser = chai.spy((args) => args);
-      accounts.createUser = chai.spy((args) => args);
-      accounts.registerUser({ username: 'test', password: '123456' });
-      expect(accounts.findUser).to.have.been.called.with({ username: 'test', password: '123456' });
-      expect(accounts.createUser).to.not.have.been.called();
-    });
-    it('creates a user if they are not found', () => {
-      accounts.findUser = chai.spy(() => null);
-      accounts.createUser = chai.spy((args) => args);
-      accounts.registerUser({ username: 'test', password: '123456' });
-      expect(accounts.findUser).to.have.been.called.with({ username: 'test', password: '123456' });
-      expect(accounts.createUser).to.not.have.been.called({ username: 'test', password: '123456' });
-    });
-  });
-  */
   describe('hashing', () => {
     const password = '123456';
     it('can encrypt and decrypt a correct password', () => {
