@@ -112,6 +112,11 @@ export class Accounts {
     // determine the id and username. Typically this is named `profile` in the response arguments.
     return { identifier: profile.id, username: profile.displayName };
   }
+  registerUser({ username, email, password }) {
+    const hash = this.hashPassword(password);
+    const profile = { hash };
+    return this.createUser({ service: 'local', username, email, profile });
+  }
 }
 
 export default (passport, accounts, strategies = []) => {
