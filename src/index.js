@@ -81,11 +81,13 @@ export class Accounts {
       strategy.authenticate(done, service, args);
     } else {
       // Looks like we're sticking with the default authentication logic.
-      // Extract a unique identifier to find the user from the service's response.
-      // If the developer provides an `extract` callback, we use that instead of our default.
+      // The profile returned by the 3rd party can have a bunch of fields we don't need
+      // if a `profile` callback is provided we use it, otherwise use passport's default profile.
       let profile = args[args.length - 1];
       profile = isFunction(strategy.profile) ? strategy.profile(profile)
         : this.strategyProfile(profile);
+      // Extract a unique identifier to find the user from the service's response.
+      // If the developer provides an `extract` callback, we use that instead of our default.
       const identifiers = isFunction(strategy.extract) ?
         strategy.extract(...args) : this.strategyExtractIdentifiers(profile);
       const { identifier, username } = identifiers;
@@ -147,10 +149,7 @@ export default (passport, accounts, strategies = []) => {
     }
     const strategyInstance = new strategy(options, // eslint-disable-line new-cap
       (...args) => {
-        // console.log(args);
-        // const done = args.pop();
         accounts.authenticate(args.pop(), name, ...args);
-        // done(null, args.pop());
       }
     );
     accounts.addStrategy(name, { extract, profile, authenticate });
