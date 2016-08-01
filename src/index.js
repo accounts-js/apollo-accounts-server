@@ -4,6 +4,36 @@ import bcrypt from 'bcryptjs';
 
 const SALT_ROUNDS = 10;
 
+export default (passport, accounts, strategies = []) => {
+  if (!passport) {
+    throw new Error('Expects a passport instance');
+  }
+  if (!accounts) {
+    throw new Error('Expects an Accounts instance');
+  }
+
+  const newStrategies = isArray(strategies) ? strategies : [strategies];
+
+  // accounts.addStrategy('local', accounts.defaultStrategy);
+
+  newStrategies.forEach(({ strategy, options = {}, name, extract, profile, authenticate }) => {
+    if (isEmpty(strategy) && !isObject(strategy)) {
+      throw new Error('Expects a passport strategy');
+    }
+    const strategyInstance = new strategy(options, // eslint-disable-line new-cap
+      (...args) => {
+        accounts.authenticate(args.pop(), name, ...args);
+      }
+    );
+    accounts.addStrategy(name, { extract, profile, authenticate });
+    passport.use(strategyInstance);
+  });
+  // TODO Only apply if functions are defined
+  // passport.serializeUser(accounts.serializeUser);
+  // passport.deserializeUser(accounts.deserializeUser);
+  return passport;
+};
+
 // Thank you http://stackoverflow.com/a/46181
 function isEmail(email) {
   // eslint-disable-next-line max-len
@@ -126,39 +156,35 @@ export class Accounts {
   transformProfile(profile) {
     return profile;
   }
-  registerUser({ username, email, password }) {
+  registerUser({ user, username, email, password }) {
+    // TODO Validation needed
+    if (user && !username && !email) {
+      if (isEmail(user)) {
+        // eslint-disable-next-line no-param-reassign
+        email = user;
+      } else {
+        // eslint-disable-next-line no-param-reassign
+        username = user;
+      }
+    }
     const hash = this.hashPassword(password);
     const profile = { hash };
     return this.createUser({ service: 'local', username, email, profile });
   }
 }
 
-export default (passport, accounts, strategies = []) => {
-  if (!passport) {
-    throw new Error('Expects a passport instance');
-  }
-  if (!accounts) {
-    throw new Error('Expects an Accounts instance');
-  }
+export const schema = [`
+type User {
+  id: String!
+  username: String!
+}
+`];
 
-  const newStrategies = isArray(strategies) ? strategies : [strategies];
-
-  // accounts.addStrategy('local', accounts.defaultStrategy);
-
-  newStrategies.forEach(({ strategy, options = {}, name, extract, profile, authenticate }) => {
-    if (isEmpty(strategy) && !isObject(strategy)) {
-      throw new Error('Expects a passport strategy');
-    }
-    const strategyInstance = new strategy(options, // eslint-disable-line new-cap
-      (...args) => {
-        accounts.authenticate(args.pop(), name, ...args);
-      }
-    );
-    accounts.addStrategy(name, { extract, profile, authenticate });
-    passport.use(strategyInstance);
-  });
-  // TODO Only apply if functions are defined
-  // passport.serializeUser(accounts.serializeUser);
-  // passport.deserializeUser(accounts.deserializeUser);
-  return passport;
+export const resolvers = {
+  User: {
+    id(args, _, context) {
+      console.log(context);
+      // return context.user.id;
+    },
+  },
 };

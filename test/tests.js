@@ -304,15 +304,29 @@ describe('Accounts', () => {
       expect(accounts.findById).to.have.been.called;
       expect(done).to.have.been.called;
     });
-    it('registerUser', (done) => {
+    it('registerUser with email', (done) => {
       accounts.createUser = chai.spy((args) => {
-        expect(args.username).to.be.equal('user1');
+        // expect(args.username).to.be.equal('user1');
         expect(args.email).to.be.equal('user1@user.com');
         expect(args.service).to.be.equal('local');
         expect(accounts.comparePassword('password', args.profile.hash)).to.be.true;
         return Promise.resolve(1);
       });
-      accounts.registerUser({ username: 'user1', email: 'user1@user.com', password: 'password' })
+      accounts.registerUser({ user: 'user1@user.com', password: 'password' })
+        .then(id => {
+          expect(id).to.be.equal(1);
+          expect(accounts.createUser).to.have.been.called;
+          done();
+        });
+    });
+    it('registerUser with username', (done) => {
+      accounts.createUser = chai.spy((args) => {
+        expect(args.username).to.be.equal('user1');
+        expect(args.service).to.be.equal('local');
+        expect(accounts.comparePassword('password', args.profile.hash)).to.be.true;
+        return Promise.resolve(1);
+      });
+      accounts.registerUser({ user: 'user1', password: 'password' })
         .then(id => {
           expect(id).to.be.equal(1);
           expect(accounts.createUser).to.have.been.called;
