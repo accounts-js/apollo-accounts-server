@@ -16,6 +16,8 @@
   "dependencies": {
     "babel-polyfill": "^6.9.0",
     "bcryptjs": "^2.3.0",
+    "grant-express": "^3.6.3",
+    "jsonwebtoken": "^7.1.7",
     "lodash": "^4.13.1",
     "passport-local": "^1.0.0"
   },
