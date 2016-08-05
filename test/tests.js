@@ -44,20 +44,45 @@ describe('Accounts', () => {
     });
   });
   describe('registerUser', () => {
-    it('');
+    it('calls createUser', (done) => {
+      accounts.createUser = chai.spy((args) => {
+        expect(args.username).to.equal('UserA');
+        expect(Accounts.comparePassword('123456', args.profile.hash)).to.equal(true);
+        return Promise.resolve('1');
+      });
+      accounts.registerUser({ user: 'UserA', password: '123456' }).then(userId => {
+        expect(accounts.createUser).to.have.been.called();
+        expect(userId).to.equal('1');
+        done();
+      });
+    });
   });
   describe('toUsernameAndEmail', () => {
     it('username', () => {
-
+      expect(Accounts.toUsernameAndEmail({ user: 'UserA' })).to.deep.equal({
+        username: 'UserA',
+        email: null,
+      });
     });
     it('email', () => {
-
+      expect(Accounts.toUsernameAndEmail({ user: 'UserA@users.com' })).to.deep.equal({
+        username: null,
+        email: 'UserA@users.com',
+      });
     });
     it('username and email', () => {
-
+      expect(Accounts.toUsernameAndEmail({
+        user: null, username: 'UserA', email: 'UserA@users.com',
+      })).to.deep.equal({
+        username: 'UserA',
+        email: 'UserA@users.com',
+      });
     });
   });
   it('hash and compare', () => {
-
+    const password = '123456';
+    const hash = Accounts.hashPassword(password);
+    expect(Accounts.comparePassword(password, hash)).to.equal(true);
+    expect(Accounts.comparePassword('wrong password', hash)).to.equal(false);
   });
 });

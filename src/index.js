@@ -72,9 +72,11 @@ class Accounts {
       if (isEmail(user)) {
        // eslint-disable-next-line no-param-reassign
         email = user;
+        username = null;
       } else {
        // eslint-disable-next-line no-param-reassign
         username = user;
+        email = null;
       }
     }
     return { username, email };
