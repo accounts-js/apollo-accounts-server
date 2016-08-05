@@ -17,8 +17,8 @@ function apolloAccounts({ webServer, accountsConfig, grantConfig, handler }) {
     if (req.session.grant) {
       const grant = req.session.grant;
       const provider = grant.provider;
-      const extraction = accountsConfig.providers
-        [provider](grant.response.access_token, grantConfig[provider]);
+      const extraction = accountsConfig.providers[provider](grant.response.access_token,
+         grantConfig[provider]);
       handler.loginWithProvider(provider, extraction)
           .then(userId => {
             // TODO Revisit access token expiry time.
@@ -42,7 +42,7 @@ export default apolloAccounts;
 
 // Thank you http://stackoverflow.com/a/46181
 function isEmail(email) {
-  // eslint-disable-next-line max-len
+  // eslint-disable-next-line
   const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
 }
