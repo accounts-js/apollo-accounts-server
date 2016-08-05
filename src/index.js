@@ -19,7 +19,7 @@ function apolloAccounts({ webServer, accountsConfig, grantConfig, handler }) {
       const provider = grant.provider;
       const extraction = accountsConfig.providers
         [provider](grant.response.access_token, grantConfig[provider]);
-      handler.authenticate(provider, extraction)
+      handler.loginWithProvider(provider, extraction)
           .then(userId => {
             // TODO Revisit access token expiry time.
             // TODO Should expireIn be configurable?
@@ -33,20 +33,12 @@ function apolloAccounts({ webServer, accountsConfig, grantConfig, handler }) {
 
             res.end(JSON.stringify({ accessToken, refreshToken }));
           })
-          .catch(err => console.log(err));
+          .catch(err => res.end(JSON.stringify(err)));
     }
   });
 }
 
 export default apolloAccounts;
-
-function hashPassword(password) {
-  return bcrypt.hashSync(password, 10); // TODO Should salt rounds be configurable?
-}
-
-function comparePassword(password, hash) {
-  return bcrypt.compareSync(password, hash);
-}
 
 // Thank you http://stackoverflow.com/a/46181
 function isEmail(email) {
@@ -56,7 +48,7 @@ function isEmail(email) {
 }
 
 class Accounts {
-  authenticate(provider, extraction) {
+  loginWithProvider(provider, extraction) {
     let identifier;
     let username;
     let profile;
@@ -71,6 +63,11 @@ class Accounts {
   }
   registerUser({ user, username, email, password }) {
    // TODO Validation needed
+    const hash = Accounts.hashPassword(password);
+    const profile = { hash };
+    return this.createUser({ profile, ...Accounts.toUsernameAndEmail({ user, username, email }) });
+  }
+  static toUsernameAndEmail({ user, username, email }) {
     if (user && !username && !email) {
       if (isEmail(user)) {
        // eslint-disable-next-line no-param-reassign
@@ -80,9 +77,13 @@ class Accounts {
         username = user;
       }
     }
-    const hash = hashPassword(password);
-    const profile = { hash };
-    return this.createUser({ username, email, profile });
+    return { username, email };
+  }
+  static hashPassword(password) {
+    return bcrypt.hashSync(password, 10); // TODO Should salt rounds be configurable?
+  }
+  static comparePassword(password, hash) {
+    return bcrypt.compareSync(password, hash);
   }
 }
 
