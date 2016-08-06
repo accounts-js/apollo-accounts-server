@@ -21,13 +21,15 @@
     "babel-core": "^6.13.0",
     "babel-polyfill": "^6.13.0",
     "bcryptjs": "^2.3.0",
+    "chai": "^3.5.0",
+    "chai-spies": "^0.7.1",
     "express": "^4.14.0",
     "grant-express": "^3.6.3",
     "jsonwebtoken": "^7.1.7",
     "lodash": "^4.14.1",
+    "object-assign-deep": "0.0.4",
     "passport-local": "^1.0.0",
-    "chai": "^3.5.0",
-    "chai-spies": "^0.7.1"
+    "request-promise": "^4.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",
