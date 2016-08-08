@@ -23,6 +23,8 @@
     "bcryptjs": "^2.3.0",
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
+    "client-sessions": "^0.7.0",
+    "cookie-parser": "^1.4.3",
     "express": "^4.14.0",
     "grant-express": "^3.6.3",
     "jsonwebtoken": "^7.1.7",

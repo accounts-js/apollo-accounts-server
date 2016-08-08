@@ -3,6 +3,7 @@ import { pick, omit } from 'lodash';
 import rp from 'request-promise';
 import commonConfig from './commonConfig';
 
+
 export const defaultConfig = {
   server: {
     protocol: 'http',
@@ -12,6 +13,13 @@ export const defaultConfig = {
     state: true,
     redirectTo: '/',
     ...commonConfig,
+  },
+  session: {
+    cookieName: 'apollo-accounts',
+    duration: 24 * 60 * 60 * 1000, // 1 day
+    cookie: {
+      httpOnly: true,
+    },
   },
 };
 
@@ -44,7 +52,7 @@ export const addDefaultExtractors = (config) => {
 };
 
 export const toGrant = (config) => {
-  const newConfig = omit(config, ['webServer', 'handler']);
+  const newConfig = omit(config, ['session']);
   newConfig.server = pick(config.server, [
     'protocol', 'host', 'path', 'callback', 'transport', 'state',
   ]);
