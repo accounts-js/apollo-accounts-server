@@ -6,6 +6,7 @@
 
 ```sh
 npm i -S apollo-accounts-server
+
 npm i -S apollo-accounts-knexjs # If you're using Postgres, MSSQL, MySQL, MariaDB, SQLite3, or Oracle
 npm i -S apollo-accounts-mongoose # If you're using Mongo
 ```

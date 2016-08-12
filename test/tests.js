@@ -48,11 +48,11 @@ describe('Accounts', () => {
       accounts.createUser = chai.spy((args) => {
         expect(args.username).to.equal('UserA');
         expect(Accounts.comparePassword('123456', args.profile.hash)).to.equal(true);
-        return Promise.resolve('1');
+        return Promise.resolve({ id: 1 });
       });
-      accounts.registerUser({ user: 'UserA', password: '123456' }).then(userId => {
+      accounts.registerUser({ user: 'UserA', password: '123456' }).then(res => {
         expect(accounts.createUser).to.have.been.called();
-        expect(userId).to.equal('1');
+        expect(res.id).to.equal(1);
         done();
       });
     });
