@@ -47,7 +47,7 @@ describe('Accounts', () => {
     it('calls createUser', (done) => {
       accounts.createUser = chai.spy((args) => {
         expect(args.username).to.equal('UserA');
-        expect(Accounts.comparePassword('123456', args.profile.hash)).to.equal(true);
+        expect(Accounts.comparePassword('123456', args.hash)).to.equal(true);
         return Promise.resolve({ id: 1 });
       });
       accounts.registerUser({ user: 'UserA', password: '123456' }).then(res => {
@@ -84,5 +84,58 @@ describe('Accounts', () => {
     const hash = Accounts.hashPassword(password);
     expect(Accounts.comparePassword(password, hash)).to.equal(true);
     expect(Accounts.comparePassword('wrong password', hash)).to.equal(false);
+  });
+  describe('loginUser', () => {
+    it('can login with username', (done) => {
+      const password = '123456';
+      const hash = Accounts.hashPassword(password);
+      accounts.findByUsername = chai.spy(() => Promise.resolve(1));
+      accounts.findHashById = chai.spy(() => Promise.resolve(hash));
+      accounts.loginUser({
+        username: 'UserA',
+        password,
+      }).then(() => {
+        expect(accounts.findByUsername).to.have.been.called();
+        expect(accounts.findHashById).to.have.been.called();
+        done();
+      });
+    });
+    it('can login with email', (done) => {
+      const password = '123456';
+      const hash = Accounts.hashPassword(password);
+      accounts.findByEmail = chai.spy(() => Promise.resolve(1));
+      accounts.findHashById = chai.spy(() => Promise.resolve(hash));
+      accounts.loginUser({
+        email: 'usera@user.com',
+        password,
+      }).then(() => {
+        expect(accounts.findByEmail).to.have.been.called();
+        expect(accounts.findHashById).to.have.been.called();
+        done();
+      });
+    });
+    it('error if user does not exist', (done) => {
+      accounts.findByEmail = chai.spy(() => Promise.resolve(null));
+      accounts.loginUser({
+        email: 'usera@user.com',
+        password: '123456',
+      }).catch(() => {
+        done();
+      });
+    });
+    it('error if incorrect password', (done) => {
+      const password = '123456';
+      const hash = Accounts.hashPassword(password);
+      accounts.findByUsername = chai.spy(() => Promise.resolve(1));
+      accounts.findHashById = chai.spy(() => Promise.resolve(hash));
+      accounts.loginUser({
+        username: 'UserA',
+        password: 'wrong password',
+      }).catch(() => {
+        expect(accounts.findByUsername).to.have.been.called();
+        expect(accounts.findHashById).to.have.been.called();
+        done();
+      });
+    });
   });
 });

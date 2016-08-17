@@ -13,19 +13,52 @@ class Accounts {
     let username;
     let profile;
     return extraction
-      .then(res => {
+      .then((res) => {
         identifier = res.identifier;
         username = res.username;
         profile = res.profile;
       })
       .then(() => this.findByProvider(provider, identifier))
-      .then(userId => userId || this.createUser({ provider, identifier, username, profile }));
+      .then((userId) => userId || this.createUser({ provider, identifier, username, profile }));
   }
   registerUser({ user, username, email, password }) {
    // TODO Validation needed
     const hash = Accounts.hashPassword(password);
-    const profile = { hash };
-    return this.createUser({ profile, ...Accounts.toUsernameAndEmail({ user, username, email }) });
+    return this.createUser({ hash, ...Accounts.toUsernameAndEmail({ user, username, email }) });
+  }
+  async loginUser({ user, username, email, password }) {
+    // TODO Validation needed
+    const credentials = Accounts.toUsernameAndEmail({
+      user, username, email,
+    });
+
+    let userId;
+
+    try {
+      if (credentials.username) {
+        userId = await this.findByUsername(credentials.username);
+      } else if (credentials.email) {
+        userId = await this.findByEmail(credentials.email);
+      }
+    } catch (e) {
+      throw new Error('User not found');
+    }
+
+    const hash = await this.findHashById(userId);
+
+    return new Promise((resolve, reject) => {
+      if (Accounts.comparePassword(password, hash)) {
+        resolve('Logged in');
+      } else {
+        reject('Incorrect password');
+      }
+    });
+  }
+  static generateTokens(userId) {
+    return {
+      accessToken: '',
+      refreshToken: '',
+    };
   }
   static toUsernameAndEmail({ user, username, email }) {
     if (user && !username && !email) {
