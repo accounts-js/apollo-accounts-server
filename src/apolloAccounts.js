@@ -1,36 +1,52 @@
-/* eslint-disable no-param-reassign */
 import Grant from 'grant-express';
-import jwt from 'jsonwebtoken';
-import serverConfig, { toGrant } from './config';
+import sessions from 'client-sessions';
+import serverConfig, { getGrantConfig } from './config';
+import Accounts from './Accounts';
 
-// TODO Revisit parameter passing
-function apolloAccounts({ webServer, handler, config }) {
-  config = serverConfig(config);
-  const grantConfig = toGrant(config);
-  // TODO Currently only supports express, expand to support koa and hapi
+function apolloAccounts({
+  webServer,
+  model,
+  config,
+  session = false,
+}) {
+  const apolloAccountsConfig = serverConfig(config);
+  const grantConfig = getGrantConfig(apolloAccountsConfig);
+  const modelInstance = model(apolloAccountsConfig);
+
+  // TODO Is it possible to just use query strings rather than session?
+  if (!session) {
+    webServer.use(sessions({
+      cookieName: 'session', // This is the cookie used by Grant, it must be named `session`
+      secret: Math.random().toString(36).substring(7),
+    }));
+  }
+
   webServer.use(new Grant(grantConfig));
-  webServer.get(config.server.callback, (req, res) => {
+
+  webServer.get(apolloAccountsConfig.server.callback, (req, res) => {
+    // TODO Currently only transport = session is supported in the config
+    // setting transport = querystring in the config will fail
     if (req.session.grant) {
       const grant = req.session.grant;
       const provider = grant.provider;
-      const extraction = config[provider].extract(grant.response.access_token,
+      const extraction = apolloAccountsConfig[provider].extract(grant.response.access_token,
          grantConfig[provider]);
-      handler.loginWithProvider(provider, extraction)
+      modelInstance.loginWithProvider(provider, extraction)
           .then(userId => {
-            // TODO Revisit access token expiry time.
-            // TODO Should expireIn be configurable?
-            const accessToken = jwt.sign({ userId }, config.server.secret, { expiresIn: '1h' });
-            const refreshToken = jwt.sign({}, config.server.secret, { expiresIn: '1h' });
-            delete req.session.grant;
-            req.session.accessToken = accessToken;
-            req.session.refreshToken = refreshToken;
-            req.session.save(() => {
-              res.redirect(config.server.redirectTo);
-            });
+            const { accessToken, refreshToken } = Accounts.generateTokens(userId);
+            res.send(`
+<script>
+  localStorage.setItem('apollo-accounts:accessToken', '${accessToken}');
+  localStorage.setItem('apollo-accounts:refreshToken', '${refreshToken}');
+  window.opener.location = '${apolloAccountsConfig.server.redirectTo}';
+  window.close();
+</script>`);
           })
           .catch(() => res.send(`Login with ${provider} failed`));
     }
   });
+
+  return modelInstance;
 }
 
 export default apolloAccounts;
