@@ -41,11 +41,10 @@ export const getGrantConfig = (config) => {
   ]);
   Object.keys(grantConfig).forEach(key => {
     if (key !== 'server') {
-      grantConfig[key] = omit(grantConfig[key], ['extract']);
+      grantConfig[key] = omit(grantConfig[key], ['extractor']);
     }
   });
   return grantConfig;
 };
-
 
 export default (config) => addDefaultExtractors(extend(defaultConfig, config));
