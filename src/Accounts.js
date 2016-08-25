@@ -1,4 +1,7 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const SALT_ROUNDS = 10;
 
 // Thank you http://stackoverflow.com/a/46181
 function isEmail(email) {
@@ -8,6 +11,9 @@ function isEmail(email) {
 }
 
 class Accounts {
+  constructor(config) {
+    this.config = config;
+  }
   loginWithProvider(provider, extraction) {
     let identifier;
     let username;
@@ -19,7 +25,8 @@ class Accounts {
         profile = res.profile;
       })
       .then(() => this.findByProvider(provider, identifier))
-      .then((userId) => userId || this.createUser({ provider, identifier, username, profile }));
+      .then(userId => userId || this.createUser({ provider, identifier, username, profile }))
+      .then(userId => this.generateTokens(userId));
   }
   registerUser({ user, username, email, password }) {
    // TODO Validation needed
@@ -48,36 +55,31 @@ class Accounts {
 
     return new Promise((resolve, reject) => {
       if (Accounts.comparePassword(password, hash)) {
-        resolve('Logged in');
+        resolve(this.generateTokens(userId));
       } else {
         reject('Incorrect password');
       }
     });
   }
-  static generateTokens(userId) {
-    return {
-      accessToken: '',
-      refreshToken: '',
-    };
+  generateTokens(userId) {
+    const accessToken = jwt.sign({ userId }, this.config.server.secret, { expiresIn: '1h' });
+    const refreshToken = jwt.sign({}, this.config.server.secret, { expiresIn: '1h' });
+    return { userId, accessToken, refreshToken };
   }
   static toUsernameAndEmail({ user, username, email }) {
     if (user && !username && !email) {
       if (isEmail(user)) {
-       // eslint-disable-next-line no-param-reassign
-        email = user;
-        // eslint-disable-next-line no-param-reassign
-        username = null;
+        email = user; // eslint-disable-line no-param-reassign
+        username = null; // eslint-disable-line no-param-reassign
       } else {
-        // eslint-disable-next-line no-param-reassign
-        username = user;
-        // eslint-disable-next-line no-param-reassign
-        email = null;
+        username = user; // eslint-disable-line no-param-reassign
+        email = null; // eslint-disable-line no-param-reassign
       }
     }
     return { username, email };
   }
   static hashPassword(password) {
-    return bcrypt.hashSync(password, 10); // TODO Should salt rounds be configurable?
+    return bcrypt.hashSync(password, SALT_ROUNDS);
   }
   static comparePassword(password, hash) {
     return bcrypt.compareSync(password, hash);

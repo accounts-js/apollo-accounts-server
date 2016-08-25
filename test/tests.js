@@ -1,7 +1,10 @@
+/* eslint-disable no-unused-expressions */
+
 import chai, { expect } from 'chai';
 import spies from 'chai-spies';
 
 import { Accounts } from '../src/';
+import config from '../src/config';
 
 chai.use(spies);
 
@@ -12,7 +15,11 @@ describe('apolloAccounts', () => {
 describe('Accounts', () => {
   let accounts;
   beforeEach(() => {
-    accounts = new Accounts();
+    accounts = new Accounts(config({
+      server: {
+        secret: 'terrible secret',
+      },
+    }));
   });
   describe('loginWithProvider', () => {
     const extraction = Promise.resolve({
@@ -22,25 +29,32 @@ describe('Accounts', () => {
     });
     it('existing user', (done) => {
       accounts.findByProvider = chai.spy(() => Promise.resolve('123'));
-      accounts.loginWithProvider('some provider', extraction).then(userId => {
-        expect(userId).to.equal('123');
-        expect(accounts.findByProvider).to.have.been.called.with('some provider', '1');
-        done();
-      });
+      accounts
+        .loginWithProvider('some provider', extraction)
+        .then(({ userId, accessToken, refreshToken }) => {
+          expect(userId).to.equal('123');
+          expect(accounts.findByProvider).to.have.been.called.with('some provider', '1');
+          expect(accessToken).to.be.ok;
+          expect(refreshToken).to.be.ok;
+          done();
     });
     it('new user', (done) => {
       accounts.findByProvider = () => Promise.resolve(null);
       accounts.createUser = chai.spy(() => Promise.resolve('123'));
-      accounts.loginWithProvider('some provider', extraction).then(userId => {
-        expect(userId).to.equal('123');
-        expect(accounts.createUser).to.have.been.called.with({
-          provider: 'some provider',
-          identifier: '1',
-          username: 'UserA',
-          profile: 'some data',
+      accounts
+        .loginWithProvider('some provider', extraction)
+        .then(({ userId, accessToken, refreshToken }) => {
+          expect(userId).to.equal('123');
+          expect(accounts.createUser).to.have.been.called.with({
+            provider: 'some provider',
+            identifier: '1',
+            username: 'UserA',
+            profile: 'some data',
+          });
+          expect(accessToken).to.be.ok;
+          expect(refreshToken).to.be.ok;
+          done();
         });
-        done();
-      });
     });
   });
   describe('registerUser', () => {

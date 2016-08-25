@@ -1,67 +1,51 @@
-import objectAssignDeep from 'object-assign-deep';
 import { pick, omit } from 'lodash';
-import rp from 'request-promise';
-import commonConfig from './commonConfig';
+import extendify from 'extendify';
+import addDefaultExtractors from './extractors';
 
+const extend = extendify({
+  inPlace: false,
+  arrays: 'replace',
+});
 
 export const defaultConfig = {
   server: {
+    // Grant
     protocol: 'http',
     host: 'localhost:3000',
     callback: '/callback',
     transport: 'session',
     state: true,
+    // apollo-accounts
     redirectTo: '/',
-    ...commonConfig,
-  },
-  session: {
-    cookieName: 'apollo-accounts',
-    duration: 24 * 60 * 60 * 1000, // 1 day
-    cookie: {
-      httpOnly: true,
-    },
+    loginWith: ['username', 'email'],
+    signupWith: ['username', 'email'],
+    openSignup: true,
+    openLogin: true,
+    // TODO Add default password validator
+    passwordValidator: null,
+    minPasswordLength: 6,
+    // TODO Add default user checker
+    usernameValidator: null,
+    // TODO Add default email validator
+    emailValidator: null,
   },
 };
 
-// TODO Split provider extract functions out of this one
-export const addDefaultExtractors = (config) => {
-  const newConfig = objectAssignDeep({}, config);
-  Object.keys(newConfig).forEach(provider => {
-    switch (provider) {
-      case 'github': {
-        newConfig[provider].extract = (accessToken, { key, secret }) =>
-          rp({
-            uri: 'https://api.github.com/user',
-            qs: {
-              access_token: accessToken,
-              client_id: key,
-              client_secret: secret,
-            },
-            headers: {
-              'User-Agent': 'apollo-accounts-server',
-            },
-            json: true,
-          }).then(result => ({ identifier: result.id, username: result.login, profile: result }));
-        break;
-      }
-      default:
-        break;
-    }
-  });
-  return newConfig;
-};
-
-export const toGrant = (config) => {
-  const newConfig = omit(config, ['session']);
-  newConfig.server = pick(config.server, [
+/**
+ * Given an apollo-accounts config pulls out a config which can be consumed by Grant
+ */
+export const getGrantConfig = (config) => {
+  const grantConfig = extend({}, config);
+  grantConfig.server = pick(config.server, [
     'protocol', 'host', 'path', 'callback', 'transport', 'state',
   ]);
-  Object.keys(newConfig).forEach((key) => {
+  Object.keys(grantConfig).forEach(key => {
     if (key !== 'server') {
-      newConfig[key] = omit(newConfig[key], ['extract']);
+      grantConfig[key] = omit(grantConfig[key], ['extract']);
     }
   });
-  return newConfig;
+  return grantConfig;
 };
 
-export default (config) => addDefaultExtractors(objectAssignDeep({}, defaultConfig, config));
+
+export default (config) => addDefaultExtractors(extend(defaultConfig, config));
