@@ -1,6 +1,6 @@
 # Accounts for Apollo Server
 
-[![CircleCI](https://circleci.com/gh/TimMikeladze/apollo-accounts-server.svg?style=svg)](https://circleci.com/gh/TimMikeladze/apollo-accounts-server)
+[![CircleCI](https://circleci.com/gh/apollo-accounts/apollo-accounts-server.svg?style=svg)](https://circleci.com/gh/TimMikeladze/apollo-accounts-server)
 
 ## Install
 
