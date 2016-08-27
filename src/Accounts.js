@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import mergeConfig from './config';
 
 const SALT_ROUNDS = 10;
 
@@ -24,13 +25,13 @@ function isEmail(email) {
  */
 class Accounts {
   constructor(config) {
-    this.config = config;
+    this.config = mergeConfig(config);
   }
   /**
    * Logs a user in through a specific provider.
    *
    * @param {string} provider Provider to login with. Must be defined in the config.
-   * @param {Object} response Response from Grant authenticating with the provider.
+   * @param {Object} response The results of Grant authenticating with the provider.
    * @return {Object} tokens An object containing `userId`, 'accessToken' and 'refreshToken'.
    */
   async loginWithProvider(provider, response) {

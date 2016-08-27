@@ -1,6 +1,6 @@
 import { pick, omit } from 'lodash';
 import extendify from 'extendify';
-import addDefaultExtractors from './extractors';
+import github from './extractors/github';
 
 const extend = extendify({
   inPlace: false,
@@ -16,7 +16,7 @@ export const defaultConfig = {
     transport: 'session',
     state: true,
     // apollo-accounts
-    redirectTo: '/',
+    onSuccessRedirect: '/',
     loginWith: ['username', 'email'],
     signupWith: ['username', 'email'],
     openSignup: true,
@@ -28,6 +28,10 @@ export const defaultConfig = {
     usernameValidator: null,
     // TODO Add default email validator
     emailValidator: null,
+  },
+  // Add default extractors for popular providers
+  github: {
+    extractor: github,
   },
 };
 
@@ -47,4 +51,4 @@ export const getGrantConfig = (config) => {
   return grantConfig;
 };
 
-export default (config) => addDefaultExtractors(extend(defaultConfig, config));
+export default (config) => extend(defaultConfig, config);

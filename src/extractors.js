@@ -7,9 +7,7 @@ const extend = extendify({
   inPlace: false,
 });
 
-const github = (config) => {
-  // eslint-disable-next-line no-param-reassign
-  config.extractor = ({ access_token }, { key, secret }) =>
+const github = ({ access_token }, { key, secret }) =>
     rp({
       uri: 'https://api.github.com/user',
       qs: {
@@ -22,7 +20,6 @@ const github = (config) => {
       },
       json: true,
     }).then(result => ({ identifier: result.id, username: result.login, profile: result }));
-};
 
 const defaultExtractors = {
   github,
@@ -34,10 +31,9 @@ export default (config) => {
         .forEach(provider => {
           // If the provider doesn't have an extractor function provided in the config
           // try to add a default extractor using the defaults.
-          if (provider !== 'server'
-            && !newConfig[provider].extractor
+          if (provider !== 'server' && !newConfig[provider].extractor
             && {}.hasOwnProperty.call(defaultExtractors, provider)) {
-            defaultExtractors[provider](newConfig);
+            newConfig[provider].extractor = defaultExtractors[provider];
           }
         });
   return newConfig;
