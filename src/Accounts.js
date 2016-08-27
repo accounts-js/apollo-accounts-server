@@ -96,13 +96,14 @@ class Accounts {
 
     const hash = await this.findHashById(userId);
 
-    return new Promise((resolve, reject) => {
-      if (Accounts.comparePassword(password, hash)) {
-        resolve(this.generateTokens(userId));
-      } else {
-        reject('Incorrect password');
-      }
-    });
+    let tokens;
+    if (Accounts.comparePassword(password, hash)) {
+      tokens = this.generateTokens(userId);
+    } else {
+      throw new Error('Incorrect password');
+    }
+
+    return tokens;
   }
   /**
    * Generates JWT tokens for the user
