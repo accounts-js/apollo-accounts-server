@@ -1,6 +1,5 @@
 import Grant from 'grant-express';
 import session from 'express-session';
-import jwt from 'jsonwebtoken';
 import { getGrantConfig } from './config';
 import {
   generateTokens,
@@ -16,6 +15,11 @@ import {
 const accountsExpress = (accounts) => (req, res, next) => {
   const app = req.app;
   const config = accounts.config;
+
+  // Setup middleware for verifying and refreshing tokens.
+  app.use(verifyAccessTokenMiddleware(config));
+  app.use(refreshTokensMiddleware(config));
+
   // Grant requires that a session is set.
   // We will automatically remove the session after the authentication process finishes.
   app.use(session({
@@ -43,6 +47,8 @@ const accountsExpress = (accounts) => (req, res, next) => {
           const { accessToken, refreshToken } = generateTokens(
             userId, config
           );
+          // TODO Should the userId be set in localStorage
+          // even though it's already present in the token payload?
           res.send(`
 <script>
 localStorage.setItem('apollo-accounts:userId', 'apollo-accounts:${userId}');
@@ -59,23 +65,6 @@ window.close();
           res.send(`Login with ${e} failed`);
         });
       });
-  });
-
-  // TODO Consider refactoring
-  // Verifies access token
-  app.use((req, res, next) => { // eslint-disable-line no-shadow
-    if (req.url != config.server.tokenRefreshPath) {
-      const accessToken = req.headers['apollo-accounts:access-token'];
-      if (accessToken) {
-        try {
-          jwt.verify(accessToken, config.tokens.accessToken.verify);
-          next();
-        } catch (e) {
-          // TODO How should this error be handled?
-          // res.send(e);
-        }
-      }
-    }
   });
 
   next();

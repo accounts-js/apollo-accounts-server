@@ -49,7 +49,7 @@ class Accounts {
       // TODO handle exception
     }
 
-    return userId && this.generateTokens(userId);
+    return userId;
   }
   /**
    * Registers a user.
