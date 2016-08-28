@@ -1,6 +1,12 @@
 import Grant from 'grant-express';
 import session from 'express-session';
+import jwt from 'jsonwebtoken';
 import { getGrantConfig } from './config';
+import {
+  generateTokens,
+  verifyAccessTokenMiddleware,
+  refreshTokensMiddleware,
+} from './tokens';
 
 /**
 * Express middleware to setup routes for signing in with providers.
@@ -19,6 +25,8 @@ const accountsExpress = (accounts) => (req, res, next) => {
     resave: false,
   }));
   app.use(new Grant(getGrantConfig(config)));
+  app.use(verifyAccessTokenMiddleware);
+  app.use(refreshTokensMiddleware);
   app.get(config.server.callback, (req, res) => { // eslint-disable-line no-shadow
     const handleResult = (callback) => {
       // Destroy Grant's session
@@ -29,14 +37,17 @@ const accountsExpress = (accounts) => (req, res, next) => {
     };
     const { provider, response } = req.session.grant;
     accounts.loginWithProvider(provider, response)
-      .then(({ userId, accessToken, refreshToken }) => {
+      .then(userId => {
         handleResult(() => {
           // TODO Setting localStorage and redirecting like this seems awfully hacky.
+          const { accessToken, refreshToken } = generateTokens(
+            userId, config
+          );
           res.send(`
 <script>
-localStorage.setItem('apollo-accounts:userId', '${userId}');
-localStorage.setItem('apollo-accounts:accessToken', '${accessToken}');
-localStorage.setItem('apollo-accounts:refreshToken', '${refreshToken}');
+localStorage.setItem('apollo-accounts:userId', 'apollo-accounts:${userId}');
+localStorage.setItem('apollo-accounts:accessToken', 'apollo-accounts:${accessToken}');
+localStorage.setItem('apollo-accounts:refreshToken', 'apollo-accounts:${refreshToken}');
 window.opener.location = '${config.server.onSuccessRedirect}';
 window.close();
 </script>`);
@@ -49,6 +60,24 @@ window.close();
         });
       });
   });
+
+  // TODO Consider refactoring
+  // Verifies access token
+  app.use((req, res, next) => { // eslint-disable-line no-shadow
+    if (req.url != config.server.tokenRefreshPath) {
+      const accessToken = req.headers['apollo-accounts:access-token'];
+      if (accessToken) {
+        try {
+          jwt.verify(accessToken, config.tokens.accessToken.verify);
+          next();
+        } catch (e) {
+          // TODO How should this error be handled?
+          // res.send(e);
+        }
+      }
+    }
+  });
+
   next();
 };
 

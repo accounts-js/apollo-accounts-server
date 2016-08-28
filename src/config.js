@@ -16,6 +16,7 @@ export const defaultConfig = {
     transport: 'session',
     state: true,
     // apollo-accounts
+    tokenRefreshPath: '/refresh-tokens',
     onSuccessRedirect: '/',
     loginWith: ['username', 'email'],
     signupWith: ['username', 'email'],
@@ -28,6 +29,21 @@ export const defaultConfig = {
     usernameValidator: null,
     // TODO Add default email validator
     emailValidator: null,
+    tokens: {
+      accessToken: {
+        sign: {
+          expiresIn: '20m',
+        },
+        verify: {
+        },
+      },
+      refreshToken: {
+        sign: {
+        },
+        verify: {
+        },
+      },
+    },
   },
   // Add default extractors for popular providers
   github: {
