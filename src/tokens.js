@@ -14,6 +14,7 @@ const generateTokens = (userId, config) => {
     config.server.secret, config.server.tokens.accessToken.sign
   );
   const refreshToken = jwt.sign(
+    { userId },
     config.server.secret, config.server.tokens.refreshToken.sign
   );
   return { accessToken, refreshToken };
@@ -22,22 +23,49 @@ const generateTokens = (userId, config) => {
 export { generateTokens };
 
 /**
- * Verifies an access token.
+ * Verifies access token.
  *
- * @param {string} userId The user id to encode in the token.
- * @param {string} config The apollo-accounts config.
+ * @param {Object} config The apollo-accounts config.
  */
-const verifyAccessTokenMiddleware = (userId, config) => (req, res, next) => {
-  req.app.post(config.server.tokenRefreshPath, (req, res) => {  // eslint-disable-line no-shadow
+const verifyAccessTokenMiddleware = (config) => (req, res, next) => {
+  // Don't want to verify access tokens if we're trying to refresh tokens.
+  if (req.url !== config.server.tokenRefreshPath) {
+    const accessToken = req.headers['apollo-accounts:access-token'];
+    if (accessToken) {
+      try {
+        jwt.verify(accessToken, config.tokens.accessToken.verify);
+        next();
+      } catch (e) {
+        // TODO How should this error be handled?
+        // res.send(e);
+      }
+    }
+  }
+};
+
+export { verifyAccessTokenMiddleware };
+
+/**
+ * Creates route for verifying and refreshing tokens.
+ *
+ * @param {Object} config The apollo-accounts config.
+ */
+const refreshTokensMiddleware = (config) => (req, res, next) => {
+  req.app.post(config.server.tokenRefreshPath, (req) => {  // eslint-disable-line no-shadow
     const refreshToken = req.headers['apollo-accounts:refresh-token'];
     if (refreshToken) {
       try {
-        jwt.verify(refreshToken, config.tokens.refreshToken.verify);
+        const decoded = jwt.verify(refreshToken, config.tokens.refreshToken.verify);
+        // TODO A new refresh token is generated, this may not be desired behavior.
+        // Consider that for refresh token blacklisting this adds more values to manage.
+        // Rather than generating a new refresh token, extend the existing one.
+        res.json(generateTokens(decoded.payload.userId, config));
+        next();
       } catch (e) {
-
+        // TODO How should this error be handled?
       }
     }
   });
 };
 
-export { verifyAccessTokenMiddleware };
+export { refreshTokensMiddleware };
