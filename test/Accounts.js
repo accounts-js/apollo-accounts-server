@@ -33,11 +33,9 @@ describe('Accounts', () => {
       accounts.findByProvider = chai.spy(() => Promise.resolve('123'));
       accounts
         .loginWithProvider('some provider', grantResponse)
-        .then(({ userId, accessToken, refreshToken }) => {
+        .then(userId => {
           expect(userId).to.equal('123');
           expect(accounts.findByProvider).to.have.been.called.with('some provider', '1');
-          expect(accessToken).to.be.ok;
-          expect(refreshToken).to.be.ok;
           done();
         });
       it('new user', (done) => {
@@ -45,7 +43,7 @@ describe('Accounts', () => {
         accounts.createUser = chai.spy(() => Promise.resolve('123'));
         accounts
         .loginWithProvider('some provider', grantResponse)
-        .then(({ userId, accessToken, refreshToken }) => {
+        .then(userId => {
           expect(userId).to.equal('123');
           expect(accounts.createUser).to.have.been.called.with({
             provider: 'some provider',
@@ -53,8 +51,6 @@ describe('Accounts', () => {
             username: 'UserA',
             profile: 'some data',
           });
-          expect(accessToken).to.be.ok;
-          expect(refreshToken).to.be.ok;
           done();
         });
       });

@@ -7,9 +7,11 @@
     "lint": "eslint src/ test/",
     "pretest": "npm run lint --silent",
     "test": "npm run testonly",
+    "prepublish": "npm run bundle",
     "testonly": "mocha --compilers js:babel-core/register --reporter spec --full-trace 'test/**/*.js'",
-    "build": "babel ./src --ignore test --out-dir ./dist",
-    "prepublish": "npm run build"
+    "bundle": "NODE_ENV=production webpack -p --config --progress",
+    "dev": "NODE_ENV=production webpack -p --config --progress --watch",
+    "debug": "NODE_ENV=development webpack --config --progress --watch"
   },
   "repository": {
     "type": "git",
@@ -18,7 +20,6 @@
   "author": "Tim Mikeladze",
   "license": "MIT",
   "dependencies": {
-    "babel-core": "^6.14.0",
     "babel-polyfill": "^6.13.0",
     "bcryptjs": "^2.3.0",
     "chai": "^3.5.0",
@@ -29,12 +30,15 @@
     "extendify": "^1.0.0",
     "grant-express": "^3.6.3",
     "jsonwebtoken": "^7.1.9",
+    "koa": "^1.2.4",
     "lodash": "^4.15.0",
     "request-promise": "^4.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.14.0",
+    "babel-core": "^6.14.0",
     "babel-eslint": "^6.1.2",
+    "babel-loader": "^6.2.5",
     "babel-preset-es2015": "^6.14.0",
     "babel-preset-stage-0": "^6.5.0",
     "chai-as-promised": "^5.3.0",
@@ -44,7 +48,12 @@
     "eslint-plugin-import": "^1.14.0",
     "eslint-plugin-jsx-a11y": "^2.1.0",
     "eslint-plugin-react": "^6.1.2",
-    "mocha": "^3.0.2"
+    "file-loader": "^0.9.0",
+    "json-loader": "^0.5.4",
+    "mocha": "^3.0.2",
+    "url-loader": "^0.5.7",
+    "webpack": "^1.13.2",
+    "webpack-node-externals": "^1.3.3"
   },
   "eslintConfig": {
     "parser": "babel-eslint",

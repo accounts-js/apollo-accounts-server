@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import mergeConfig from './config';
 
 const SALT_ROUNDS = 10;
@@ -50,7 +49,7 @@ class Accounts {
       // TODO handle exception
     }
 
-    return userId && this.generateTokens(userId);
+    return userId;
   }
   /**
    * Registers a user.
@@ -96,25 +95,11 @@ class Accounts {
 
     const hash = await this.findHashById(userId);
 
-    let tokens;
-    if (Accounts.comparePassword(password, hash)) {
-      tokens = this.generateTokens(userId);
-    } else {
+    if (!Accounts.comparePassword(password, hash)) {
       throw new Error('Incorrect password');
     }
 
-    return tokens;
-  }
-  /**
-   * Generates JWT tokens for the user
-   *
-   * @param {string} userId The user id to encode in the token.
-   * @return {Object} tokens An object containig `userId`, `accessToken` and `refreshToken`.
-   */
-  generateTokens(userId) {
-    const accessToken = jwt.sign({ userId }, this.config.server.secret, { expiresIn: '1h' });
-    const refreshToken = jwt.sign({}, this.config.server.secret, { expiresIn: '1h' });
-    return { userId, accessToken, refreshToken };
+    return userId;
   }
   /**
    * Given a username, user and/or email figure out the username and/or email.
